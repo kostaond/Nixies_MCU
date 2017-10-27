@@ -1,19 +1,17 @@
 #include "uart.h"
 
+#define UART_RB_SIZE 32
+#define UART_MSG_SIZE 6
+#define RX_TIMEOUT 2 /* 2 seconds */
 
 /* Transmit and receive ring buffers */
 STATIC RINGBUFF_T rxring, txring;
 /* Ring buffer size */
-#define UART_RB_SIZE 32
-#define UART_MSG_SIZE 6
 static uint8_t UART_data_RX[UART_RB_SIZE];
 static uint8_t UART_data_TX[UART_RB_SIZE];
-
-
-void UART0_IRQHandler (void)
-{
-	Chip_UART_IRQRBHandler(LPC_USART0, &rxring, &txring);
-}
+/* Variables to indicate stale RX */
+volatile bool RX_new_data = false;
+volatile uint32_t time_stamp = 0;
 
 void UART_init (void)
 {
@@ -38,11 +36,18 @@ void UART_init (void)
 	NVIC_EnableIRQ(UART0_IRQn);
 }
 
+void UART0_IRQHandler (void)
+{
+	Chip_UART_IRQRBHandler(LPC_USART0, &rxring, &txring);
+	RX_new_data = true;
+}
+
 void UART_commands_exec(volatile time_t* time_to_set)
 {
 	uint8_t data[UART_MSG_SIZE];
+				
 	if (RingBuffer_GetCount(&rxring) >= UART_MSG_SIZE)
-	{			
+	{				
 		Chip_UART_ReadRB(LPC_USART0, &rxring, data, UART_MSG_SIZE);	
 		switch (data[1])
 		{
@@ -66,7 +71,7 @@ void UART_commands_exec(volatile time_t* time_to_set)
 			break;
 			
 			case (TOGGLE):
-			  if (time_to_set->curr_displayed == DATE)
+				if (time_to_set->curr_displayed == DATE)
 				{
 					time_to_set->curr_displayed = TIME | LOCK;
 					time_to_set->change_display_timeout = 0;
@@ -78,5 +83,19 @@ void UART_commands_exec(volatile time_t* time_to_set)
 				}
 			break;				
 		}
+	}
+	
+	if (RX_new_data)
+	{	
+		/* need to combine ss/mm/hh to adress corner cases when time is 20:59, for example. If stored only seconds,
+			timeout difference checked below would be incorrect (01 - 59)*/
+		time_stamp = time_to_set->seconds + time_to_set->minutes*60 + time_to_set->hours*360;
+		RX_new_data = false;
+	} 
+	else if ((RingBuffer_GetCount(&rxring)) > 0 &&
+		((time_to_set->seconds + time_to_set->minutes*60 + time_to_set->hours*360 - time_stamp) >= RX_TIMEOUT))
+	{
+		/* if timeout, flush the incomplete rx ring buffer to have it clean for next incoming messages if connection is established again */
+		RingBuffer_Flush(&rxring);
 	}
 }

@@ -5,6 +5,7 @@
 #include "chip.h"
 #include "system_LPC8xx.h"
 
+
 typedef struct time {
    uint8_t  seconds;
    uint8_t  minutes;
