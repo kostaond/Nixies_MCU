@@ -11,7 +11,7 @@ static uint8_t UART_data_RX[UART_RB_SIZE];
 static uint8_t UART_data_TX[UART_RB_SIZE];
 /* Variables to indicate stale RX */
 volatile bool RX_new_data = false;
-volatile uint32_t time_stamp = 0;
+volatile int32_t time_stamp = 0;
 
 void UART_init (void)
 {
@@ -36,19 +36,30 @@ void UART_init (void)
 	NVIC_EnableIRQ(UART0_IRQn);
 }
 
+bool xx = false;
 void UART0_IRQHandler (void)
 {
+	if((Chip_UART_GetStatus(LPC_USART0) & UART_STAT_RXRDY) != 0)
+	{
+		RX_new_data = true;
+	}
 	Chip_UART_IRQRBHandler(LPC_USART0, &rxring, &txring);
-	RX_new_data = true;
 }
 
 void UART_commands_exec(volatile time_t* time_to_set)
 {
 	uint8_t data[UART_MSG_SIZE];
-				
-	if (RingBuffer_GetCount(&rxring) >= UART_MSG_SIZE)
+	int32_t curr_time_stamp;
+	
+	/* need to combine ss/mm/hh to adress corner cases when time is 20:59, for example. If stored only seconds,
+	timeout difference checked below would be incorrect (01 - 59)*/
+	curr_time_stamp = time_to_set->seconds + time_to_set->minutes*60 + time_to_set->hours*360;
+	
+	while (RingBuffer_GetCount(&rxring) >= UART_MSG_SIZE)
 	{				
-		Chip_UART_ReadRB(LPC_USART0, &rxring, data, UART_MSG_SIZE);	
+		Chip_UART_IntDisable(LPC_USART0, UART_INTEN_RXRDY); /* disable RX interrupt to protect integrity of rxring buffer during reading */
+		Chip_UART_ReadRB(LPC_USART0, &rxring, data, UART_MSG_SIZE);
+		Chip_UART_IntEnable(LPC_USART0, UART_INTEN_RXRDY);		
 		switch (data[1])
 		{
 			case (SET | UART_TIME):
@@ -87,15 +98,15 @@ void UART_commands_exec(volatile time_t* time_to_set)
 	
 	if (RX_new_data)
 	{	
-		/* need to combine ss/mm/hh to adress corner cases when time is 20:59, for example. If stored only seconds,
-			timeout difference checked below would be incorrect (01 - 59)*/
-		time_stamp = time_to_set->seconds + time_to_set->minutes*60 + time_to_set->hours*360;
+		time_stamp = curr_time_stamp;
 		RX_new_data = false;
 	} 
-	else if ((RingBuffer_GetCount(&rxring)) > 0 &&
-		((time_to_set->seconds + time_to_set->minutes*60 + time_to_set->hours*360 - time_stamp) >= RX_TIMEOUT))
+	else if ((RingBuffer_GetCount(&rxring) > 0) &&
+		((curr_time_stamp - time_stamp) >= RX_TIMEOUT))
 	{
-		/* if timeout, flush the incomplete rx ring buffer to have it clean for next incoming messages if connection is established again */
+		 /*if timeout, flush the incomplete rx ring buffer to have it clean for next incoming messages if connection is established again */
+		Chip_UART_IntDisable(LPC_USART0, UART_INTEN_RXRDY);	/* disable RX interrupt to protect integrity of rxring buffer during flushing */
 		RingBuffer_Flush(&rxring);
+		Chip_UART_IntEnable(LPC_USART0, UART_INTEN_RXRDY);	
 	}
 }
