@@ -325,6 +325,10 @@
       <TargetDriverDllRegistry>
         <SetRegEntry>
           <Number>0</Number>
+          <Key>DLGUARM</Key>
+        </SetRegEntry>
+        <SetRegEntry>
+          <Number>0</Number>
           <Key>ARMRTXEVENTFLAGS</Key>
           <Name>-L70 -Z18 -C0 -M0 -T1</Name>
         </SetRegEntry>
@@ -341,7 +345,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>JL2CM3</Key>
-          <Name>-U268003028 -O78 -S2 -ZTIFSpeedSel5000 -A0 -C0 -JU1 -JI-JP0 -JP0 -RST0 -N00("ARM CoreSight SW-DP") -D00(0BC11477) -L00(0) -TO18 -TC10000000 -TP21 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -TB1 -TFE0 -FO15 -FD10000000 -FCFE0 -FN1 -FF0LPC8xx_16.FLM -FS00 -FL04000 -FP0($$Device:LPC812M101JD20$Flash\LPC8xx_16.FLM)</Name>
+          <Name>-U268003028 -O78 -S2 -ZTIFSpeedSel5000 -A0 -C0 -JU1 -JI-JP0 -JP0 -RST0 -N00("ARM CoreSight SW-DP") -D00(0BC11477) -L00(0) -TO18 -TC10000000 -TP21 -TDS8004 -TDT0 -TDC1F -TIE1 -TIP8 -TB1 -TFE0 -FO15 -FD10000000 -FCFE0 -FN1 -FF0LPC8xx_16.FLM -FS00 -FL04000 -FP0($$Device:LPC812M101JD20$Flash\LPC8xx_16.FLM)</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -364,34 +368,27 @@
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>rxring</ItemText>
+          <ItemText>RX_new_data</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>bytes_read</ItemText>
+          <ItemText>time_stamp</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>UART_data</ItemText>
-        </Ww>
-        <Ww>
-          <count>5</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>data</ItemText>
-        </Ww>
-        <Ww>
-          <count>6</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>x</ItemText>
-        </Ww>
-        <Ww>
-          <count>7</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>x_data</ItemText>
+          <ItemText>xx</ItemText>
         </Ww>
       </WatchWindow1>
+      <MemoryWindow1>
+        <Mm>
+          <WinNumber>1</WinNumber>
+          <SubType>0</SubType>
+          <ItemText>anode_ON</ItemText>
+          <AccSizeX>0</AccSizeX>
+        </Mm>
+      </MemoryWindow1>
       <Tracepoint>
         <THDelay>0</THDelay>
       </Tracepoint>
@@ -412,8 +409,8 @@
         <AscS3>0</AscS3>
         <aSer3>0</aSer3>
         <eProf>0</eProf>
-        <aLa>0</aLa>
-        <aPa1>0</aPa1>
+        <aLa>1</aLa>
+        <aPa1>1</aPa1>
         <AscS4>0</AscS4>
         <aSer4>1</aSer4>
         <StkLoc>0</StkLoc>
@@ -433,6 +430,10 @@
         <Entry>
           <Name>System Viewer\GPIO_PORT</Name>
           <WinId>35905</WinId>
+        </Entry>
+        <Entry>
+          <Name>System Viewer\USART0</Name>
+          <WinId>35904</WinId>
         </Entry>
       </SystemViewers>
     </TargetOption>

@@ -19,7 +19,18 @@
 #define ALIVE 0x66
 #define START_FLAG 0x7D
 
+typedef enum {
+	WAIT,
+	CMD,
+	SET_BT_SI,
+	SET_BT_SJ,
+	EXIT,
+	END
+} BT_states;
+
 void UART_init(void);
 void UART_commands_exec(volatile time_t* time_to_set);
+bool set_BT_power_save (volatile time_t* curr_time);
+bool UART_check_timeout (int32_t current_time_stamp);
 
 #endif /* UART_H */

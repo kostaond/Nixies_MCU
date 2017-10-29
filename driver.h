@@ -7,27 +7,27 @@
 
 
 typedef struct time {
-   uint8_t  seconds;
-   uint8_t  minutes;
-   uint8_t  hours;
-   uint8_t  days;
-	 uint8_t  months;
-	 uint16_t years;
-	 uint8_t	curr_displayed;
-	 uint16_t change_display_timeout;
-	 uint16_t pad;
+	uint8_t  seconds;
+	uint8_t  minutes;
+	uint8_t  hours;
+	uint8_t  days;
+	uint8_t  months;
+	uint16_t years;
+	uint8_t	curr_displayed;
+	uint16_t change_display_timeout;
+	uint16_t pad;
 } time_t;
 
 typedef struct display {
-   uint8_t  seconds;
-   uint8_t  minutes;
-   uint8_t  hours;
-	 uint8_t	pad;
+	uint8_t  seconds;
+	uint8_t  minutes;
+	uint8_t  hours;
+	uint8_t	pad;
 } display_t;
 
 typedef enum {
-  SECONDS,
-  MINUTES,
+	SECONDS,
+	MINUTES,
 	HOURS,
 	DAYS,
 	MONTHS,

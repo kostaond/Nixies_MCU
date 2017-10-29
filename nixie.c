@@ -446,10 +446,13 @@ int main(void)
 	
 	my_time.curr_displayed = TIME;
 	my_time.change_display_timeout = 0;
-
+	
+	while(my_time.seconds == 0); /* wait one second prior setting BT to give it enough time to startup */
+	while (!set_BT_power_save (&my_time));
+	
 	while(1)
 	{		
-		UART_commands_exec(&my_time);			
+		UART_commands_exec(&my_time);	
 		//buttonishi=!Chip_GPIO_ReadPortBit(LPC_GPIO_PORT, 0, SW1);              //button is hi
 		//buttonishioneshot=buttonishi && !buttonishil; //button just went hi
 	}
