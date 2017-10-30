@@ -1,5 +1,8 @@
 #include "uart.h"
 
+//#define BAUD_RATE 115200
+#define BAUD_RATE 57600
+
 #define UART_RB_SIZE 32
 #define UART_MSG_SIZE 6
 #define RX_TIMEOUT 2 /* 2 seconds */
@@ -25,8 +28,8 @@ void UART_init (void)
 	/* Setup UART */
 	Chip_UART_Init(LPC_USART0);
 	Chip_UART_ConfigData(LPC_USART0, UART_CFG_DATALEN_8 | UART_CFG_PARITY_NONE | UART_CFG_STOPLEN_1 );
-	Chip_Clock_SetUSARTNBaseClockRate((115200 * 16), true);
-	Chip_UART_SetBaud(LPC_USART0, 115200);
+	Chip_Clock_SetUSARTNBaseClockRate((BAUD_RATE * 16), true);
+	Chip_UART_SetBaud(LPC_USART0, BAUD_RATE);
 	Chip_UART_Enable(LPC_USART0);
 	Chip_UART_TXEnable(LPC_USART0);
 	
@@ -159,6 +162,25 @@ void UART_commands_exec(volatile time_t* time_to_set)
 				memset(data, 0x0, sizeof(data));
 				data[0] = START_FLAG;
 				data[1] = ALIVE;
+				Chip_UART_SendRB(LPC_USART0, &txring, data, UART_MSG_SIZE);
+			break;
+			
+			case (GET | UART_TIME):
+				data[0] = START_FLAG;
+				data[1] = UART_TIME;
+				data[4] = time_to_set->seconds;
+				data[3] = time_to_set->minutes;
+				data[2] = time_to_set->hours;
+				Chip_UART_SendRB(LPC_USART0, &txring, data, UART_MSG_SIZE);
+			break;
+		
+			case (GET | UART_DATE):
+				data[0] = START_FLAG;
+				data[1] = UART_DATE;
+				data[2] = time_to_set->days;
+				data[3] = time_to_set->months;
+				data[4] = time_to_set->years >> 8;
+				data[5] = time_to_set->years & 0xFF;
 				Chip_UART_SendRB(LPC_USART0, &txring, data, UART_MSG_SIZE);
 			break;
 			

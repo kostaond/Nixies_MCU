@@ -49,6 +49,7 @@ void board_init (void)
 	Chip_GPIO_SetPortDIRInput(LPC_GPIO_PORT, 0, IN_PORT_MASK);
 	
 	/* Connect the UART TX/RX signals to port pins 6 and 0) */
+	Chip_SWM_DisableFixedPin(SWM_FIXED_ACMP_I1);
 	Chip_SWM_MovablePinAssign(SWM_U0_TXD_O, 0);
 	Chip_SWM_MovablePinAssign(SWM_U0_RXD_I, 6);
 	
