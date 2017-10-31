@@ -86,7 +86,7 @@ bool set_BT_power_save (volatile time_t* curr_time)
 				else
 				{
 					/* message was not sucessfull */
-					state = (prev_state == EXIT) ? END : EXIT; /* if previous state was EXIT, then END, otherwise try to exit set mode */
+					state = (prev_state == EXIT) ? END : EXIT; /* if previous state was EXIT, then END, otherwise try to exit set mode wit waiting for "END\r\n" sent by BT*/
 				}					
 			}
 			if (UART_check_timeout(curr_time_stamp))
@@ -96,14 +96,14 @@ bool set_BT_power_save (volatile time_t* curr_time)
 		break;
 			
 		case SET_BT_SI:
-			tx_data = "SI,0012\r";
+			tx_data = "SI,0012\r"; /* set Discover window to the lowest value */
 			Chip_UART_SendRB(LPC_USART0, &txring, tx_data, 8);
 			prev_state = state;
 			state = WAIT;
 		break;
 		
 		case SET_BT_SJ:
-			tx_data = "SJ,0012\r";
+			tx_data = "SJ,0012\r"; /* set Connect window to the lowest value */
 			Chip_UART_SendRB(LPC_USART0, &txring, tx_data, 8);
 			prev_state = state;
 			state = WAIT;
@@ -129,7 +129,7 @@ bool set_BT_power_save (volatile time_t* curr_time)
 	return setting_done;
 }
 
-void UART_commands_exec(volatile time_t* time_to_set)
+void UART_commands_exec(volatile time_t* time_to_set, volatile display_t* user_data_to_set)
 {
 	uint8_t data[UART_MSG_SIZE];
 	int32_t curr_time_stamp;
@@ -168,9 +168,10 @@ void UART_commands_exec(volatile time_t* time_to_set)
 			case (GET | UART_TIME):
 				data[0] = START_FLAG;
 				data[1] = UART_TIME;
-				data[4] = time_to_set->seconds;
-				data[3] = time_to_set->minutes;
 				data[2] = time_to_set->hours;
+				data[3] = time_to_set->minutes;
+				data[4] = time_to_set->seconds;
+				data[5] = 0;
 				Chip_UART_SendRB(LPC_USART0, &txring, data, UART_MSG_SIZE);
 			break;
 		
@@ -184,13 +185,21 @@ void UART_commands_exec(volatile time_t* time_to_set)
 				Chip_UART_SendRB(LPC_USART0, &txring, data, UART_MSG_SIZE);
 			break;
 			
+			case (DISP):
+				time_to_set->change_display_timeout = 0;
+				time_to_set->curr_displayed = USER_DATA;
+				user_data_to_set->hours = data[2];
+				user_data_to_set->minutes = data[3];
+				user_data_to_set->seconds = data[4];				
+			break;
+			
 			case (TOGGLE):
 				if (time_to_set->curr_displayed == DATE)
 				{
 					time_to_set->curr_displayed = TIME | LOCK;
 					time_to_set->change_display_timeout = 0;
 				}
-				else
+				else if (time_to_set->curr_displayed == TIME)
 				{
 					time_to_set->curr_displayed = DATE | LOCK;
 					time_to_set->change_display_timeout = 0;

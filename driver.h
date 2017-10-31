@@ -100,7 +100,7 @@ void work_around_7442_4028 (uint8_t* number);
 uint32_t SysTick_Config_half(uint32_t ticks);
 void board_init (void);
 void time_inc_dec (volatile time_t* time, int8_t dec_inc_value, date_time what);
-void roll_numbers(volatile time_t* time, volatile display_t *display);
+void roll_numbers(volatile time_t* time, volatile display_t* user_data, volatile display_t *display);
 uint8_t to_BCD (uint8_t number);
 bool roll(volatile uint8_t* displayed, uint8_t needed, uint8_t over);
 uint8_t year_to_number (uint16_t year);

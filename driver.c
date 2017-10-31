@@ -254,10 +254,11 @@ void time_inc_dec(volatile time_t* time, int8_t dec_inc_value, date_time what)
 }	
 
 
-void roll_numbers(volatile time_t* time, volatile display_t *display)	
+void roll_numbers(volatile time_t* time, volatile display_t* user_data, volatile display_t *display)	
 {
 	static uint8_t over_date = 0;
 	static uint8_t over_time = 0;
+	static uint8_t over_user = 0;
 	static bool one_time_roll = FALSE;
 	bool finish = FALSE;
 	
@@ -271,6 +272,7 @@ void roll_numbers(volatile time_t* time, volatile display_t *display)
 		{
 			one_time_roll = TRUE;
 			over_time = 0;
+			over_user = 0;
 			
 			time->curr_displayed &= ~LOCK; /* unlock */
 		}	
@@ -279,29 +281,54 @@ void roll_numbers(volatile time_t* time, volatile display_t *display)
 			over_date++; /* to roll over all 10 (0-9) digits */
 		}
 	}
-	else if (one_time_roll) /* time */
+
+	if ((time->curr_displayed & ~LOCK) == TIME) /* time */
 	{
-		finish = roll(&display->seconds, to_BCD(time->seconds), over_time);
-		finish &= roll(&display->minutes, to_BCD(time->minutes), over_time);
-		finish &= roll(&display->hours, to_BCD(time->hours), over_time);
+		if (one_time_roll)
+		{
+			finish = roll(&display->seconds, to_BCD(time->seconds), over_time);
+			finish &= roll(&display->minutes, to_BCD(time->minutes), over_time);
+			finish &= roll(&display->hours, to_BCD(time->hours), over_time);
+			
+			if (finish)
+			{
+				one_time_roll = FALSE; /* prevents rolling seconds when they are changed under normal conditions */ 
+				over_date = 0;
+				over_user = 0;
+				
+				time->curr_displayed &= ~LOCK; /* unlock */
+			}
+			else
+			{
+				over_time++; /* to roll over all 10 (0-9) digits */
+			}
+		}
+		else
+		{
+			display->seconds = to_BCD(time->seconds);
+			display->minutes = to_BCD(time->minutes);
+			display->hours = to_BCD(time->hours);
+		}
+	}
+	
+	if ((time->curr_displayed & ~LOCK) == USER_DATA)
+	{
+		finish = roll(&display->seconds, to_BCD(user_data->seconds), over_user);
+		finish &= roll(&display->minutes, to_BCD(user_data->minutes), over_user);
+		finish &= roll(&display->hours, to_BCD(user_data->hours), over_user);
 		
 		if (finish)
 		{
-			one_time_roll = FALSE;
+			one_time_roll = TRUE;
 			over_date = 0;
+			over_time = 0;
 			
 			time->curr_displayed &= ~LOCK; /* unlock */
 		}
 		else
 		{
-			over_time++; /* to roll over all 10 (0-9) digits */
+			over_user++; /* to roll over all 10 (0-9) digits */
 		}
-	}
-	else
-	{
-		display->seconds = to_BCD(time->seconds);
-		display->minutes = to_BCD(time->minutes);
-		display->hours = to_BCD(time->hours);
 	}
 }
 

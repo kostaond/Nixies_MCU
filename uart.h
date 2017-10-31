@@ -20,16 +20,17 @@
 #define START_FLAG 0x7D
 
 typedef enum {
-	WAIT,
-	CMD,
-	SET_BT_SI,
-	SET_BT_SJ,
-	EXIT,
-	END
+	WAIT, /* Do not change */
+	CMD, /* Do not change */
+	SET_BT_SI, 
+	SET_BT_SJ, 
+	/*insert new command here */
+	EXIT, /* Do not change */
+	END /* Do not change */
 } BT_states;
 
 void UART_init(void);
-void UART_commands_exec(volatile time_t* time_to_set);
+void UART_commands_exec(volatile time_t* time_to_set, volatile display_t* user_data_to_set);
 bool set_BT_power_save (volatile time_t* curr_time);
 bool UART_check_timeout (int32_t current_time_stamp);
 

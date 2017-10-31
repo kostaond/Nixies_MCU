@@ -13,6 +13,7 @@
 
 #define SHOW_TIME 90 /* Show time for 90 seconds */
 #define SHOW_DATE 10 /* Show date for 10 seconds */
+#define SHOW_USER_DATA 10 /* Show user data for 30 seconds */
 
 #define NOT_IN_SET_MODE 0
 #define PRE_SET_MODE 1
@@ -23,6 +24,7 @@ volatile time_t my_time;
 volatile uint8_t anode_ON = 0;
 volatile uint8_t set_mode = NOT_IN_SET_MODE;
 volatile display_t to_display;
+volatile display_t user_data;
 volatile bool blink = FALSE;
 volatile int8_t set_value;
 volatile uint8_t leave_set_mode = 0;
@@ -35,13 +37,21 @@ void SysTick_Handler(void)
 			time_inc_dec(&my_time, +1, SECONDS);
 			blink = FALSE;
 			
-			my_time.change_display_timeout++;		
-			if ((my_time.curr_displayed == TIME) && (my_time.change_display_timeout > SHOW_TIME)) /* LOCK equals 0 => unlocked, if locked, there is no change between date & time */
-			{
-				my_time.curr_displayed = DATE | LOCK;
-				my_time.change_display_timeout = 0;
+			my_time.change_display_timeout++;	
+			if ((my_time.curr_displayed != USER_DATA))
+			{	
+				if ((my_time.curr_displayed == TIME) && (my_time.change_display_timeout > SHOW_TIME)) /* LOCK equals 0 => unlocked, if locked, there is no change between date & time */
+				{
+					my_time.curr_displayed = DATE | LOCK;
+					my_time.change_display_timeout = 0;
+				}
+				else if ((my_time.curr_displayed == DATE) && (my_time.change_display_timeout > SHOW_DATE))
+				{
+					my_time.curr_displayed = TIME | LOCK;
+					my_time.change_display_timeout = 0;
+				}
 			}
-			else if ((my_time.curr_displayed == DATE) && (my_time.change_display_timeout > SHOW_DATE))
+			else if (my_time.change_display_timeout > SHOW_USER_DATA)
 			{
 				my_time.curr_displayed = TIME | LOCK;
 				my_time.change_display_timeout = 0;
@@ -98,7 +108,7 @@ void MRT_IRQHandler(void)
 		/* Channel 3 - speed of numbers rolling*/
 		if (int_pend & MRTn_INTFLAG(3))
 		{
-			roll_numbers(&my_time, &to_display);	
+			roll_numbers(&my_time, &user_data, &to_display);	
 		}
 	}
 	else if (my_time.curr_displayed == TIME) /* if in SET MODE and time to be displayed */
@@ -309,6 +319,12 @@ void PININT1_IRQHandler(void)
 
 void PININT3_IRQHandler(void)
 {
+	/* if user data is displayed, setting cannot be entered and display cannot be changed between time/date */
+	if (my_time.curr_displayed == USER_DATA)
+	{
+		return;
+	}
+	
 	if (LPC_PININT->PMCTRL & PININT_PMCTRL_PMATCH_SEL)
 	{
 			//my_time.seconds = 33;
@@ -452,7 +468,7 @@ int main(void)
 	
 	while(1)
 	{		
-		UART_commands_exec(&my_time);	
+		UART_commands_exec(&my_time, &user_data);	
 		//buttonishi=!Chip_GPIO_ReadPortBit(LPC_GPIO_PORT, 0, SW1);              //button is hi
 		//buttonishioneshot=buttonishi && !buttonishil; //button just went hi
 	}
