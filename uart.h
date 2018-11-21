@@ -14,6 +14,7 @@
 /* data to be set received by Bluetooth */
 #define UART_TIME 0x01
 #define UART_DATE 0x02
+#define SHOW_INTERVALS 0x03
 
 /* flags to be transmitted */
 #define ALIVE 0x66

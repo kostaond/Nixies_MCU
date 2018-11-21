@@ -348,12 +348,11 @@ ARM Macro Assembler    Page 6
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M0+ --apcs=inter
 work --depend=.\objects\startup_lpc8xx.d -o.\objects\startup_lpc8xx.o -ID:\Proj
-ekty\Hodiny\program\RTE\_LPC812_BOARD_REV1 -I"C:\Program Files\ARM_KEIL\ARM\PAC
-K\ARM\CMSIS\5.0.0\CMSIS\Include" -I"C:\Program Files\ARM_KEIL\ARM\PACK\Keil\LPC
-800_DFP\1.3.0\Device\Include" --predefine="__EVAL SETA 1" --predefine="__UVISIO
-N_VERSION SETA 522" --predefine="_RTE_ SETA 1" --predefine="LPC812M101JD20 SETA
- 1" --list=.\listings\startup_lpc8xx.lst RTE\Device\LPC812M101JD20\startup_LPC8
-xx.s
+ekty\Hodiny\program\RTE\_LPC812 -I"C:\Program Files\ARM_KEIL\ARM\PACK\ARM\CMSIS
+\5.0.0\CMSIS\Include" -I"C:\Program Files\ARM_KEIL\ARM\PACK\Keil\LPC800_DFP\1.3
+.0\Device\Include" --predefine="__EVAL SETA 1" --predefine="__UVISION_VERSION S
+ETA 522" --predefine="_RTE_ SETA 1" --predefine="LPC812M101JD20 SETA 1" --list=
+.\listings\startup_lpc8xx.lst RTE\Device\LPC812M101JD20\startup_LPC8xx.s
 
 
 

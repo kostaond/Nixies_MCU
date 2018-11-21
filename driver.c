@@ -50,8 +50,8 @@ void board_init (void)
 	
 	/* Connect the UART TX/RX signals to port pins 6 and 0) */
 	Chip_SWM_DisableFixedPin(SWM_FIXED_ACMP_I1);
-	Chip_SWM_MovablePinAssign(SWM_U0_TXD_O, 0);
-	Chip_SWM_MovablePinAssign(SWM_U0_RXD_I, 6);
+	Chip_SWM_MovablePinAssign(SWM_U0_TXD_O, TX_PIN);
+	Chip_SWM_MovablePinAssign(SWM_U0_RXD_I, RX_PIN);
 	
 	/* Set GPIO port mask value to make sure only port 0
 	are active during state change */

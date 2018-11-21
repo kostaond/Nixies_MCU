@@ -15,7 +15,9 @@ typedef struct time {
 	uint16_t years;
 	uint8_t	curr_displayed;
 	uint16_t change_display_timeout;
-	uint16_t pad;
+	uint16_t show_time;
+	uint16_t show_date;
+	uint16_t show_user_data;
 } time_t;
 
 typedef struct display {
@@ -70,6 +72,14 @@ typedef enum {
 #define SW2						5
 
 #ifdef BOARD_REV1
+	#define TX_PIN				0
+	#define RX_PIN				6
+#else
+	#define TX_PIN				6
+	#define RX_PIN				0
+#endif
+
+#ifdef BOARD_REV1
 	#define BCD_A				16
 	#define BCD_B				11
 	#define BCD_C				4
@@ -80,6 +90,7 @@ typedef enum {
 	#define BCD_C				10
 	#define BCD_D				11
 #endif
+
 /* ----------------------------- */
 
 #define OUT_PORT_MASK 0x3EC92 /* pins 1, 4, 7, 10, 11, 13, 14, 15, 16 and 17 */

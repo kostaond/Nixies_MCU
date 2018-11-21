@@ -40,18 +40,18 @@ void SysTick_Handler(void)
 			my_time.change_display_timeout++;	
 			if ((my_time.curr_displayed != USER_DATA))
 			{	
-				if ((my_time.curr_displayed == TIME) && (my_time.change_display_timeout > SHOW_TIME)) /* LOCK equals 0 => unlocked, if locked, there is no change between date & time */
+				if ((my_time.curr_displayed == TIME) && (my_time.change_display_timeout > my_time.show_time)) /* LOCK equals 0 => unlocked, if locked, there is no change between date & time */
 				{
 					my_time.curr_displayed = DATE | LOCK;
 					my_time.change_display_timeout = 0;
 				}
-				else if ((my_time.curr_displayed == DATE) && (my_time.change_display_timeout > SHOW_DATE))
+				else if ((my_time.curr_displayed == DATE) && (my_time.change_display_timeout > my_time.show_date))
 				{
 					my_time.curr_displayed = TIME | LOCK;
 					my_time.change_display_timeout = 0;
 				}
 			}
-			else if (my_time.change_display_timeout > SHOW_USER_DATA)
+			else if (my_time.change_display_timeout > my_time.show_user_data)
 			{
 				my_time.curr_displayed = TIME | LOCK;
 				my_time.change_display_timeout = 0;
@@ -463,9 +463,15 @@ int main(void)
 	my_time.curr_displayed = TIME;
 	my_time.change_display_timeout = 0;
 	
+	my_time.show_time = SHOW_TIME;
+	my_time.show_date = SHOW_DATE;
+	my_time.show_user_data = SHOW_USER_DATA;
+
+#ifdef BOARD_REV1 /* REV1 uses RN42, the below commands are compatible with it only */
 	while(my_time.seconds == 0); /* wait one second prior setting BT to give it enough time to startup */
 	while (!set_BT_power_save (&my_time));
-	
+#endif
+
 	while(1)
 	{		
 		UART_commands_exec(&my_time, &user_data);	

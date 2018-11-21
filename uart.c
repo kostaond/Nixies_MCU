@@ -134,7 +134,7 @@ void UART_commands_exec(volatile time_t* time_to_set, volatile display_t* user_d
 	uint8_t data[UART_MSG_SIZE];
 	int32_t curr_time_stamp;
 	
-	/* need to combine ss/mm/hh to adress corner cases when time is 20:59, for example. If stored only seconds,
+	/* need to combine ss/mm/hh to adress corner cases when time is 20:59, for example. If I stored only seconds,
 	timeout difference checked below would be incorrect (01 - 59)*/
 	curr_time_stamp = time_to_set->seconds + time_to_set->minutes*60 + time_to_set->hours*360;
 	
@@ -144,67 +144,97 @@ void UART_commands_exec(volatile time_t* time_to_set, volatile display_t* user_d
 		Chip_UART_ReadRB(LPC_USART0, &rxring, data, UART_MSG_SIZE);
 		Chip_UART_IntEnable(LPC_USART0, UART_INTEN_RXRDY);		
 		
-		switch (data[1])
+		if (data[0] == START_FLAG)
 		{
-			case (SET | UART_TIME):
-				time_to_set->seconds = data[4];
-				time_to_set->minutes = data[3];
-				time_to_set->hours = data[2];
-			break;
-		
-			case (SET | UART_DATE):
-				time_to_set->days = data[2];
-				time_to_set->months = data[3];
-				time_to_set->years = data[4] << 8 | data[5];
-			break;
+			switch (data[1])
+			{
+				case (SET | UART_TIME):
+					time_to_set->seconds = data[4];
+					time_to_set->minutes = data[3];
+					time_to_set->hours = data[2];
+				break;
 			
-			case (PING):
-				memset(data, 0x0, sizeof(data));
-				data[0] = START_FLAG;
-				data[1] = ALIVE;
-				Chip_UART_SendRB(LPC_USART0, &txring, data, UART_MSG_SIZE);
-			break;
+				case (SET | UART_DATE):
+					time_to_set->years = data[4] << 8 | data[5];
+					time_to_set->months = data[3];
+					time_to_set->days = data[2];
+				break;
+				
+				case (SET | SHOW_INTERVALS):
+					if (data[2] > 2)	/* do not set new setting if less than 3*/
+					{
+						time_to_set->show_time = data[2];
+					}
+					
+					if (data[3] > 2)
+					{
+						time_to_set->show_date = data[3];
+					}
+					
+					if (data[4] > 2)
+					{
+						time_to_set->show_user_data = data [4];
+					}
+				break;
+				
+				case (PING):
+					memset(data, 0x0, sizeof(data));
+					data[0] = START_FLAG;
+					data[1] = ALIVE;
+					Chip_UART_SendRB(LPC_USART0, &txring, data, UART_MSG_SIZE);
+				break;
+				
+				case (GET | UART_TIME):
+					data[0] = START_FLAG;
+					data[1] = UART_TIME;
+					data[2] = time_to_set->hours;
+					data[3] = time_to_set->minutes;
+					data[4] = time_to_set->seconds;
+					data[5] = 0;
+					Chip_UART_SendRB(LPC_USART0, &txring, data, UART_MSG_SIZE);
+				break;
 			
-			case (GET | UART_TIME):
-				data[0] = START_FLAG;
-				data[1] = UART_TIME;
-				data[2] = time_to_set->hours;
-				data[3] = time_to_set->minutes;
-				data[4] = time_to_set->seconds;
-				data[5] = 0;
-				Chip_UART_SendRB(LPC_USART0, &txring, data, UART_MSG_SIZE);
-			break;
-		
-			case (GET | UART_DATE):
-				data[0] = START_FLAG;
-				data[1] = UART_DATE;
-				data[2] = time_to_set->days;
-				data[3] = time_to_set->months;
-				data[4] = time_to_set->years >> 8;
-				data[5] = time_to_set->years & 0xFF;
-				Chip_UART_SendRB(LPC_USART0, &txring, data, UART_MSG_SIZE);
-			break;
-			
-			case (DISP):
-				time_to_set->change_display_timeout = 0;
-				time_to_set->curr_displayed = USER_DATA;
-				user_data_to_set->hours = data[2];
-				user_data_to_set->minutes = data[3];
-				user_data_to_set->seconds = data[4];				
-			break;
-			
-			case (TOGGLE):
-				if (time_to_set->curr_displayed == DATE)
-				{
-					time_to_set->curr_displayed = TIME | LOCK;
+				case (GET | UART_DATE):
+					data[0] = START_FLAG;
+					data[1] = UART_DATE;
+					data[2] = time_to_set->days;
+					data[3] = time_to_set->months;
+					data[4] = time_to_set->years >> 8;
+					data[5] = time_to_set->years & 0xFF;
+					Chip_UART_SendRB(LPC_USART0, &txring, data, UART_MSG_SIZE);
+				break;
+				
+				case (GET | SHOW_INTERVALS):
+					data[0] = START_FLAG;
+					data[1] = SHOW_INTERVALS;
+					data[2] = time_to_set->show_time;
+					data[3] = time_to_set->show_date;
+					data[4] = time_to_set->show_user_data;
+					data[5] = 0;
+					Chip_UART_SendRB(LPC_USART0, &txring, data, UART_MSG_SIZE);
+				break;
+				
+				case (DISP):
 					time_to_set->change_display_timeout = 0;
-				}
-				else if (time_to_set->curr_displayed == TIME)
-				{
-					time_to_set->curr_displayed = DATE | LOCK;
-					time_to_set->change_display_timeout = 0;
-				}
-			break;				
+					time_to_set->curr_displayed = USER_DATA;
+					user_data_to_set->hours = data[2];
+					user_data_to_set->minutes = data[3];
+					user_data_to_set->seconds = data[4];				
+				break;
+				
+				case (TOGGLE):
+					if (time_to_set->curr_displayed == DATE)
+					{
+						time_to_set->curr_displayed = TIME | LOCK;
+						time_to_set->change_display_timeout = 0;
+					}
+					else if (time_to_set->curr_displayed == TIME)
+					{
+						time_to_set->curr_displayed = DATE | LOCK;
+						time_to_set->change_display_timeout = 0;
+					}
+				break;				
+			}
 		}
 	}
 	
