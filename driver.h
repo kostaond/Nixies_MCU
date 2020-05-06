@@ -3,7 +3,7 @@
 
 #define CORE_M0PLUS
 #include "chip.h"
-#include "system_LPC8xx.h"
+#include "system_LPC812.h"
 
 
 typedef struct time {

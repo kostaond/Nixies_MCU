@@ -1,6 +1,6 @@
 
 /*
- * Auto generated Run-Time-Environment Component Configuration File
+ * Auto generated Run-Time-Environment Configuration File
  *      *** Do not modify ! ***
  *
  * Project: 'nixie_clock' 
@@ -14,7 +14,8 @@
 /*
  * Define the Device Header File: 
  */
-#define CMSIS_device_header "LPC8xx.h"
+#define CMSIS_device_header "fsl_device_registers.h"
+
 
 
 #endif /* RTE_COMPONENTS_H */
